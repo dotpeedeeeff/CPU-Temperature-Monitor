@@ -14,3 +14,8 @@ def get_temps():
         core_list.append(core_temp)
 
     return core_list
+
+def core_number():
+    core_list = get_temps()
+    core_number = len(core_list)
+    return core_number

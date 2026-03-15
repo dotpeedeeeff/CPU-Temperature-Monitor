@@ -1,5 +1,7 @@
-import sys, temp
-from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QProgressBar, QPushButton
+import sys
+import temp
+from PyQt6.QtWidgets import QApplication, QWidget, QLabel
+from PyQt6.QtWidgets import QVBoxLayout, QProgressBar, QPushButton
 from PyQt6.QtCore import QTimer
 
 
@@ -10,57 +12,51 @@ class MainWindow(QWidget):
         self.setWindowTitle("CPU Temps")
         self.setGeometry(100, 100, 320, 210)
 
-        label_0 = QLabel("Core 0")
-        label_1 = QLabel("Core 1")
-        label_2 = QLabel("Core 2")
-        label_3 = QLabel("Core 3")
+        core_number = temp.core_number()
+        self.core_list = []
+        for i in range(core_number):
+            self.core_list.append(i)
 
-        self.core_0 = QProgressBar()
-        self.core_0.setRange(0, 100)
-        self.core_1 = QProgressBar()
-        self.core_1.setRange(0, 100)
-        self.core_2 = QProgressBar()
-        self.core_2.setRange(0, 100)
-        self.core_3 = QProgressBar()
-        self.core_2.setRange(0, 100)
+        # creating labels and setting text
+        self.label_list = [QLabel() for i in self.core_list]
+        for object in self.label_list:
+            object.setText("Core " + str(self.label_list.index(object)))
 
+        # defining quit button
         btn_exit = QPushButton("Quit")
         btn_exit.clicked.connect(app.quit)
 
+        # creating and initialising progressbars
+        self.cores = [QProgressBar() for i in self.core_list]
+        for core in self.cores:
+            core.setRange(0, 100)
+
+        combined_list = zip(self.label_list, self.cores)
+        print(combined_list)
+
+        # layout of widgets
         layout = QVBoxLayout()
-        layout.addWidget(label_0)
-        layout.addWidget(self.core_0)
-        layout.addWidget(label_1)
-        layout.addWidget(self.core_1)
-        layout.addWidget(label_2)
-        layout.addWidget(self.core_2)
-        layout.addWidget(label_3)
-        layout.addWidget(self.core_3)
+        for item in combined_list:
+            layout.addWidget(item[0])
+            layout.addWidget(item[1])
         layout.addWidget(btn_exit)
         self.setLayout(layout)
         self.show()
 
-        self.set_caption()
-
+        # repeating call to temperature sensors
         self.core_update = QTimer()
         self.core_update.timeout.connect(self.core_query)
         self.core_update.start()
-    
+
     def core_query(self):
         core_temps = temp.get_temps()
-        temp_0, temp_1, temp_2, temp_3 = core_temps
-
-        self.core_0.setValue(int(temp_0))
-        self.core_1.setValue(int(temp_1))
-        self.core_2.setValue(int(temp_2))
-        self.core_3.setValue(int(temp_3))
+        for i in range(len(self.cores)):
+            self.cores[i].setValue(int(core_temps[i]))
         self.set_caption()
 
     def set_caption(self):
-        self.core_0.setFormat(str(self.core_0.value()) + "°C")
-        self.core_1.setFormat(str(self.core_1.value()) + "°C")
-        self.core_2.setFormat(str(self.core_2.value()) + "°C")
-        self.core_3.setFormat(str(self.core_3.value()) + "°C")
+        for core in self.cores:
+            core.setFormat(str(core.value()) + "°C")
 
 
 if __name__ == "__main__":
