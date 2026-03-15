@@ -1,5 +1,5 @@
 import sys
-import temp
+import psutil
 from PyQt6.QtWidgets import QApplication, QWidget, QLabel
 from PyQt6.QtWidgets import QVBoxLayout, QProgressBar, QPushButton
 from PyQt6.QtCore import QTimer
@@ -12,33 +12,29 @@ class MainWindow(QWidget):
         self.setWindowTitle("CPU Temps")
         self.setGeometry(100, 100, 320, 210)
 
-        core_number = temp.core_number()
-        self.core_list = []
-        for i in range(core_number):
-            self.core_list.append(i)
+        self.core_number = len(self.get_temps())
 
         # creating labels and setting text
-        self.label_list = [QLabel() for i in self.core_list]
-        for object in self.label_list:
-            object.setText("Core " + str(self.label_list.index(object)))
+        self.label_list = [QLabel() for i in range(self.core_number)]
+        for i, label in enumerate(self.label_list):
+            label.setText("Core " + str(i))
 
         # defining quit button
         btn_exit = QPushButton("Quit")
         btn_exit.clicked.connect(app.quit)
 
         # creating and initialising progressbars
-        self.cores = [QProgressBar() for i in self.core_list]
+        self.cores = [QProgressBar() for i in range(self.core_number)]
         for core in self.cores:
             core.setRange(0, 100)
 
         combined_list = zip(self.label_list, self.cores)
-        print(combined_list)
 
         # layout of widgets
         layout = QVBoxLayout()
-        for item in combined_list:
-            layout.addWidget(item[0])
-            layout.addWidget(item[1])
+        for label, core in combined_list:
+            layout.addWidget(label)
+            layout.addWidget(core)
         layout.addWidget(btn_exit)
         self.setLayout(layout)
         self.show()
@@ -46,12 +42,21 @@ class MainWindow(QWidget):
         # repeating call to temperature sensors
         self.core_update = QTimer()
         self.core_update.timeout.connect(self.core_query)
-        self.core_update.start()
+        self.core_update.start(1000)
+
+    def get_temps(self):
+        temps = psutil.sensors_temperatures()
+        cores = temps["coretemp"]
+        # slice to remove sys temp readout
+        cores = cores[1:]
+        core_list = [item[1] for item in cores]
+
+        return core_list
 
     def core_query(self):
-        core_temps = temp.get_temps()
-        for i in range(len(self.cores)):
-            self.cores[i].setValue(int(core_temps[i]))
+        core_temps = self.get_temps()
+        for i, core in enumerate(self.cores):
+            core.setValue(int(core_temps[i]))
         self.set_caption()
 
     def set_caption(self):
