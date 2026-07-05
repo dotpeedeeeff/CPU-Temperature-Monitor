@@ -1,9 +1,11 @@
 import sys
 import psutil
+import random
 from PyQt6.QtWidgets import QApplication, QWidget, QLabel
 from PyQt6.QtWidgets import QVBoxLayout, QProgressBar, QPushButton
 from PyQt6.QtCore import QTimer
 
+# This is a testing version only, it returns dummy temperatures for testing with different core numbers. See line 52.
 
 class MainWindow(QWidget):
     def __init__(self, *args, **kwargs):
@@ -45,11 +47,13 @@ class MainWindow(QWidget):
         self.core_update.start(1000)
 
     def get_temps(self):
-        temps = psutil.sensors_temperatures()
-        cores = temps["coretemp"]
-        # slice to remove sys temp readout
-        cores = cores[1:]
-        core_list = [item[1] for item in cores]
+        
+        # adjust this variable to adjust cores for testing
+        core_num = 2
+
+        core_list = []
+        for i in range(core_num):
+            core_list.append(50 + random.randint(-5, 5))
         return core_list
 
     def core_query(self):
