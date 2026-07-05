@@ -49,7 +49,7 @@ class MainWindow(QWidget):
     def get_temps(self):
         
         # adjust this variable to adjust cores for testing
-        core_num = 2
+        core_num = 4
 
         core_list = []
         for i in range(core_num):
